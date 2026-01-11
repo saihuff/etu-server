@@ -1,0 +1,1 @@
+module Usecase.AggreData where
