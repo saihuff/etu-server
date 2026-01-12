@@ -17,7 +17,7 @@ data Menu = Menu
   } deriving (Show, Generic)
 
 data MenuPayload = MenuPayload
-  { generated_at :: Text
+  { generated_at :: UTCTime
   , menus        :: [Menu]
   } deriving (Show, Generic)
 

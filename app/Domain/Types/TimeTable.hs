@@ -7,6 +7,7 @@ import Data.Aeson
 import Data.Text
 import Data.Time.Clock
 import Data.Time.LocalTime
+import Data.Time.Calendar
 
 data Subject = Subject
   { period :: Int
@@ -15,7 +16,7 @@ data Subject = Subject
 
 data TimeTable = TimeTable
   { subjects :: [Subject]
-  , date :: Text
+  , date :: Day
   } deriving (Show, Generic)
 
 data TimeTables = TimeTables
