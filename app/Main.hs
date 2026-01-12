@@ -53,7 +53,7 @@ app =
 dammyresponse :: DTM.MenuPayload
 dammyresponse = DTM.MenuPayload
     {
-        DTM.generated_at = "2026-01-05T11:21:55+09:00",
+        DTM.generated_at = read "2026-01-12 04:53:23.441233382 UTC",
         DTM.menus = [
             DTM.Menu {
                 DTM.name = "ダミー担々麺",

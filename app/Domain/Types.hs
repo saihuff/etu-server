@@ -24,22 +24,28 @@ instance ToJSON LoginReq
 -----------------------------------------------
     --main Types
 
-data Meta = Meta
+data Meta' = Meta'
   { fetchedAt :: UTCTime
   , updatedAt :: UTCTime
   , source :: Text
-  }
+  } deriving (Show, Generic)
+
+instance ToJSON Meta'
 
 data WithMeta a = WithMeta
-  { meta :: Meta
+  { meta :: Meta'
   , value :: a
-  }
+  } deriving (Show, Generic)
+
 
 data WithStatus a
   = Available a
   | Stale a NominalDiffTime
   | Unavailable
+  deriving (Show, Generic)
 
+instance ToJSON a => ToJSON (WithStatus a)
+instance ToJSON a => ToJSON (WithMeta a)
 
 data Board = Board
   { boardTime :: UTCTime
