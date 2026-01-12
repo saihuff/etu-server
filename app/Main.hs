@@ -12,6 +12,8 @@ import Data.Monoid
 import Data.IORef
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import Database.PostgreSQL.Simple
+import Data.Maybe
 
 import Domain.Types
 import qualified Domain.Types.Menu as DTM
@@ -22,20 +24,24 @@ import DataSource.Fetch
 data MySession = EmptySession
 data MyAppState = DummyAppState (IORef Int)
 
+data AppState = AppState {dbConn :: Connection}
+
 main :: IO ()
 main =
     do ref <- newIORef 0
-       spockCfg <- defaultSpockCfg EmptySession PCNoDatabase (DummyAppState ref)
+       conn <- connectPostgreSQL "host=localhost dbname=etuservertest user=postgres password=fumifumiHaskell"
+       let appState = AppState conn
+       spockCfg <- defaultSpockCfg EmptySession PCNoDatabase appState
        runSpock 8080 (spock spockCfg app)
 
-app :: SpockM () MySession MyAppState ()
+app :: SpockM () MySession AppState ()
 app =
     do get root $
            text "Hello World!"
-       get ("hello" <//> var) $ \name ->
+               {-get ("hello" <//> var) $ \name ->
            do (DummyAppState ref) <- getState
               visitorNumber <- liftIO $ atomicModifyIORef' ref $ \i -> (i+1, i+1)
-              text ("Hello " <> name <> ", you are visitor number " <> T.pack (show visitorNumber))
+              text ("Hello " <> name <> ", you are visitor number " <> T.pack (show visitorNumber))-}
        post "test" $ do
            mreq <- jsonBody'
            liftIO . print $ (mreq :: LoginReq)
@@ -48,6 +54,11 @@ app =
            liftIO . print $ (mreq :: DTM.MenuPayload)
            json mreq
        get ("api" <//> "v1" <//> "board") (json dammyresponse)
+       post ("api" <//> "v1" <//> "cafe") $ do
+           jsonreq <- jsonBody'
+           state <- getState
+           liftIO $ saveMenuPayload (dbConn state) jsonreq
+           text "ok"
 
 
 dammyresponse :: DTM.MenuPayload
