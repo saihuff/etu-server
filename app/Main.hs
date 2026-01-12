@@ -47,7 +47,7 @@ app =
            mreq <- jsonBody'
            liftIO . print $ (mreq :: DTM.MenuPayload)
            json mreq
-       get ("api" <//> "board") (json dammyresponse)
+       get ("api" <//> "v1" <//> "board") (json dammyresponse)
 
 
 dammyresponse :: DTM.MenuPayload
