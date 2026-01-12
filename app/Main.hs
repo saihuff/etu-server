@@ -14,6 +14,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
 import Domain.Types
+import qualified Domain.Types.Menu as DTM
+import qualified Domain.Types.TimeTable as DTTT
+import qualified Domain.Types.Train as DTT
 import DataSource.Fetch
 
 data MySession = EmptySession
@@ -39,33 +42,33 @@ app =
            text "ok"
        get "raspi" $ do
            x <- liftIO $ fetchJSON "http://[2600:1900:4001:79b::]:5000/menu_get"
-           json (x :: MenuPayload)
+           json (x :: DTM.MenuPayload)
        post ("raspi" <//> "test") $ do
            mreq <- jsonBody'
-           liftIO . print $ (mreq :: MenuPayload)
+           liftIO . print $ (mreq :: DTM.MenuPayload)
            json mreq
        get ("api" <//> "board") (json dammyresponse)
 
 
-dammyresponse :: MenuPayload
-dammyresponse = MenuPayload
+dammyresponse :: DTM.MenuPayload
+dammyresponse = DTM.MenuPayload
     {
-        generated_at = "2026-01-05T11:21:55+09:00",
-        menus = [
-            Menu {
-                name = "ダミー担々麺",
-                date = "2026-01-20",
-                price = 500
+        DTM.generated_at = "2026-01-05T11:21:55+09:00",
+        DTM.menus = [
+            DTM.Menu {
+                DTM.name = "ダミー担々麺",
+                DTM.date = "2026-01-20",
+                DTM.price = 500
             },
-            Menu {
-                name = "ダミー春巻き",
-                date = "2026-01-21",
-                price = 130
+            DTM.Menu {
+                DTM.name = "ダミー春巻き",
+                DTM.date = "2026-01-21",
+                DTM.price = 130
             },
-            Menu {
-                name = "ダミー親子丼",
-                date = "2026-01-22",
-                price = 550
+            DTM.Menu {
+                DTM.name = "ダミー親子丼",
+                DTM.date = "2026-01-22",
+                DTM.price = 550
             }
         ]
     }
