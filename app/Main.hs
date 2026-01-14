@@ -14,6 +14,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Database.PostgreSQL.Simple
 import Data.Maybe
+import System.Environment (lookupEnv)
 
 import Domain.Types
 import qualified Domain.Types.Menu as DTM
@@ -29,7 +30,8 @@ data AppState = AppState {dbConn :: Connection}
 main :: IO ()
 main =
     do ref <- newIORef 0
-       conn <- connectPostgreSQL "host=localhost dbname=etuservertest user=postgres password=fumifumiHaskell"
+       connInfo <- getConnInfo
+       conn <- connect connInfo
        let appState = AppState conn
        spockCfg <- defaultSpockCfg EmptySession PCNoDatabase appState
        runSpock 8080 (spock spockCfg app)
@@ -60,6 +62,26 @@ app =
            liftIO $ saveMenuPayload (dbConn state) jsonreq
            text "ok"
 
+getConnInfo :: IO ConnectInfo
+getConnInfo = do
+  host <- fromMaybe "localhost" <$> lookupEnv "DB_HOST"
+  putStrLn $ "DEBUG DB_HOST=" ++ show host
+  port <- maybe 5432 read <$> lookupEnv "DB_PORT"
+  putStrLn $ "DEBUG DB_PORT=" ++ show port
+  user <- fromMaybe "postgres" <$> lookupEnv "DB_USER"
+  putStrLn $ "DEBUG DB_USER=" ++ show user
+  pass <- fromMaybe "" <$> lookupEnv "DB_PASS"
+  putStrLn $ "DEBUG DB_PASS=" ++ show pass
+  db   <- fromMaybe "postgres" <$> lookupEnv "DB_NAME"
+  putStrLn $ "DEBUG DB_NAME=" ++ show db
+
+  pure defaultConnectInfo
+    { connectHost     = host
+    , connectPort     = port
+    , connectUser     = user
+    , connectPassword = pass
+    , connectDatabase = db
+    }
 
 dammyresponse :: DTM.MenuPayload
 dammyresponse = DTM.MenuPayload
