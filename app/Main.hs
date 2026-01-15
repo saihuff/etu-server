@@ -61,6 +61,14 @@ app =
            state <- getState
            liftIO $ saveMenuPayload (dbConn state) jsonreq
            text "ok"
+       get ("test" <//> "timetable") $ do
+           state <- getState
+           liftIO $ saveTimeTablePayLoad (dbConn state) dammytime
+       get ("test" <//> "timetabletest") (json dammytime)
+       get ("test" <//> "cafetest") $ do
+           state <- getState
+           liftIO $ saveMenuPayload (dbConn state) dammyresponse
+       
 
 getConnInfo :: IO ConnectInfo
 getConnInfo = do
@@ -84,24 +92,7 @@ getConnInfo = do
     }
 
 dammyresponse :: DTM.MenuPayload
-dammyresponse = DTM.MenuPayload
-    {
-        DTM.generated_at = read "2026-01-12 04:53:23.441233382 UTC",
-        DTM.menus = [
-            DTM.Menu {
-                DTM.name = "ダミー担々麺",
-                DTM.date = "2026-01-20",
-                DTM.price = 500
-            },
-            DTM.Menu {
-                DTM.name = "ダミー春巻き",
-                DTM.date = "2026-01-21",
-                DTM.price = 130
-            },
-            DTM.Menu {
-                DTM.name = "ダミー親子丼",
-                DTM.date = "2026-01-22",
-                DTM.price = 550
-            }
-        ]
-    }
+dammyresponse = DTM.dammyMenu
+
+dammytime :: DTTT.TimeTables
+dammytime = DTTT.dammyTimeTable

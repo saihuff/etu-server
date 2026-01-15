@@ -27,3 +27,11 @@ instance FromJSON Menu
 instance ToJSON Menu
 instance FromJSON MenuPayload
 instance ToJSON MenuPayload
+
+dammyMenu :: MenuPayload
+dammyMenu = MenuPayload { generated_at = read "2026-01-12 04:53:23.441233382 UTC",
+                          menus = [Menu { name = "ダミー担々麺", date = "2026-01-20", price = 500 }
+                                  ,Menu { name = "ダミー春巻き", date = "2026-01-21", price = 130 }
+                                  ,Menu { name = "ダミー親子丼", date = "2026-01-22", price = 550 }
+                                  ]
+                        }

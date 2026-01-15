@@ -30,3 +30,15 @@ instance FromJSON TimeTables
 instance ToJSON Subject
 instance ToJSON TimeTable
 instance ToJSON TimeTables
+
+dammyTimeTable :: TimeTables
+dammyTimeTable = TimeTables
+    { generated_at = read "2026-01-12 04:53:23.441233382 UTC"
+    , main_timetable = [TimeTable { subjects = [Subject { period = 1
+                                                        , subject = "japanese" 
+                                                        }
+                                               ]
+                                  , date = read "2026-01-16" 
+                                  }
+                       ]
+    }

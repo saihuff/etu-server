@@ -22,6 +22,7 @@ import Data.Time.Clock
 
 import Domain.Types
 import qualified Domain.Types.Menu as DTM
+import qualified Domain.Types.TimeTable as DTTT
 
 fetchJSON :: FromJSON a => String -> IO a
 fetchJSON url = do
@@ -35,6 +36,13 @@ fetchJSON url = do
 saveMenuPayload :: Connection -> DTM.MenuPayload -> IO ()
 saveMenuPayload conn req = do
     time <- getCurrentTime
-    let q1 = "INSERT INTO menu_payloads (generated_at, menus, status, fetched_at, updated_at, source) VALUES (?, ?, ?, ?, ?, ?)"
-    execute conn q1 (DTM.generated_at req, toJSONField (DTM.menus req), "ok" :: String, time, time, "matsumoto" :: String)
+    let q = "INSERT INTO menu_payloads (generated_at, menus, status, fetched_at, updated_at, source) VALUES (?, ?, ?, ?, ?, ?)"
+    execute conn q (DTM.generated_at req, toJSONField (DTM.menus req), "ok" :: String, time, time, "matsumoto" :: String)
+    return ()
+
+saveTimeTablePayLoad :: Connection -> DTTT.TimeTables -> IO ()
+saveTimeTablePayLoad conn req = do
+    time <- getCurrentTime
+    let q = "INSERT INTO timetable_payloads (generated_at, main_timetable, status, fetched_at, updated_at, source) VALUES (?, ?, ?, ?, ?, ?)"
+    execute conn q (DTTT.generated_at req, toJSONField (DTTT.main_timetable req), "ok" :: String, time, time, "ohara" :: String)
     return ()
