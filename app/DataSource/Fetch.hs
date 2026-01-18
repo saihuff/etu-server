@@ -57,6 +57,14 @@ latestRecordFromMenuPayload conn = do
     let q1 = "select max(updated_at) from menu_payloads"
         q2 = "select * from menu_payloads where (updated_at = ?);"
     latestTime <- Prelude.head <$> (query conn q1 () :: IO [Only UTCTime])
-    (id, generatedat, DTM.MenusJSON maintimetable, status, fetchedat, updatedat, source) <- Prelude.head <$> (query conn q2 latestTime :: IO [DTM.MenuPair])
-    return $ DTM.MenuPayload { DTM.generated_at = generatedat, DTM.menus = maintimetable }
+    (id, generatedat, DTM.MenusJSON menus', status, fetchedat, updatedat, source) <- Prelude.head <$> (query conn q2 latestTime :: IO [DTM.MenuPair])
+    return $ DTM.MenuPayload { DTM.generated_at = generatedat, DTM.menus = menus' }
 
+latestRecordFromTimeTablePayload :: Connection -> IO DTTT.TimeTables
+latestRecordFromTimeTablePayload conn = do
+    time <- getCurrentTime
+    let q1 = "select max(updated_at) from timetable_payloads"
+        q2 = "select * from timetable_payloads where (updated_at = ?);"
+    latestTime <- Prelude.head <$> (query conn q1 () :: IO [Only UTCTime])
+    (id, generatedat, DTTT.TimeTableJSON timetables, status, fetchedat, updatedat, source) <- Prelude.head <$> (query conn q2 latestTime :: IO [DTTT.TimeTablePair])
+    return $ DTTT.TimeTables { DTTT.generated_at = generatedat, DTTT.main_timetable = timetables }

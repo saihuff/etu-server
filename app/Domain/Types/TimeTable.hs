@@ -8,6 +8,7 @@ import Data.Text
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.Calendar
+import Database.PostgreSQL.Simple.FromField (FromField, fromJSONField, fromField)
 
 data Subject = Subject
   { period :: Int
@@ -30,6 +31,17 @@ instance FromJSON TimeTables
 instance ToJSON Subject
 instance ToJSON TimeTable
 instance ToJSON TimeTables
+
+newtype TimeTableJSON = TimeTableJSON [TimeTable]
+
+instance FromJSON TimeTableJSON where
+  parseJSON v = TimeTableJSON <$> parseJSON v
+
+instance FromField TimeTableJSON where
+  fromField = fromJSONField
+
+
+type TimeTablePair = (Int, UTCTime, TimeTableJSON, Text, UTCTime, UTCTime, Text)
 
 dammyTimeTable :: TimeTables
 dammyTimeTable = TimeTables

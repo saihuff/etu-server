@@ -72,6 +72,10 @@ app =
            state <- getState
            resp <- liftIO $ latestRecordFromMenuPayload (dbConn state)
            json resp
+       get ("test" <//> "dbfetchtest2") $ do
+           state <- getState
+           resp <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
+           json resp
        
 
 getConnInfo :: IO ConnectInfo
