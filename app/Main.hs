@@ -20,7 +20,10 @@ import Domain.Types
 import qualified Domain.Types.Menu as DTM
 import qualified Domain.Types.TimeTable as DTTT
 import qualified Domain.Types.Train as DTT
+import Domain.Transform
 import DataSource.Fetch
+import Data.Time (getCurrentTime)
+import DataSource.Fetch (latestRecordFromMenuPayload)
 
 data MySession = EmptySession
 data MyAppState = DummyAppState (IORef Int)
@@ -33,6 +36,7 @@ main =
        connInfo <- getConnInfo
        conn <- connect connInfo
        let appState = AppState conn
+       startPolling conn
        spockCfg <- defaultSpockCfg EmptySession PCNoDatabase appState
        runSpock 8080 (spock spockCfg app)
 
@@ -55,7 +59,13 @@ app =
            mreq <- jsonBody'
            liftIO . print $ (mreq :: DTM.MenuPayload)
            json mreq
-       get ("api" <//> "v1" <//> "board") (json dammyresponse)
+       get ("api" <//> "v1" <//> "board") $ do
+           state <- getState
+           tt <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
+           mn <- liftIO $ latestRecordFromMenuPayload (dbConn state)
+           tn <- liftIO $ latestRecordFromTrainPayload (dbConn state)
+           time <- liftIO $ getCurrentTime
+           json $ mergeData time mn tt tn
        post ("api" <//> "v1" <//> "cafe") $ do
            jsonreq <- jsonBody'
            state <- getState
@@ -64,7 +74,10 @@ app =
        get ("test" <//> "timetable") $ do
            state <- getState
            liftIO $ saveTimeTablePayLoad (dbConn state) dammytime
-       get ("test" <//> "timetabletest") (json dammytime)
+       get ("test" <//> "timetabletest") $ do
+           state <- getState
+           tt <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
+           json  tt
        get ("test" <//> "cafetest") $ do
            state <- getState
            liftIO $ saveMenuPayload (dbConn state) dammyresponse
@@ -76,6 +89,13 @@ app =
            state <- getState
            resp <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
            json resp
+       get ("test" <//> "outfetchtest") $ do
+           js <- liftIO $ (fetchJSON "http://172.21.54.165:5000/api/test" :: IO DTTT.TimeTables)
+           json js
+       get "dammyadd" $ do
+           state <- getState
+           liftIO $ saveTrainPayLoad (dbConn state) dammytrain
+       get "traindammy" $ json dammytrain
        
 
 getConnInfo :: IO ConnectInfo
@@ -104,3 +124,6 @@ dammyresponse = DTM.dammyMenu
 
 dammytime :: DTTT.TimeTables
 dammytime = DTTT.dammyTimeTable
+
+dammytrain :: DTT.Train
+dammytrain = DTT.dammyTrain
