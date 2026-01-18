@@ -48,10 +48,20 @@ instance ToJSON a => ToJSON (WithStatus a)
 instance ToJSON a => ToJSON (WithMeta a)
 
 data Board = Board
-  { boardTime :: UTCTime
-  , menu :: WithStatus (WithMeta DTM.MenuPayload)
-  , timetable :: WithStatus (WithMeta DTTT.TimeTables)
-  , train :: WithStatus (WithMeta DTT.Train)
+  { boardTimeb :: UTCTime
+  , menub :: WithStatus (WithMeta DTM.MenuPayload)
+  , timetableb :: WithStatus (WithMeta DTTT.TimeTables)
+  , trainb :: WithStatus (WithMeta DTT.Train)
   } deriving (Show, Generic)
 
 instance ToJSON Board
+
+
+data TestBoard = TestBoard
+  { generated_at :: UTCTime
+  , cafe :: DTM.MenuPayload
+  , timetable :: DTTT.TimeTables
+  , train :: DTT.Train
+  } deriving (Show, Generic)
+
+instance ToJSON TestBoard

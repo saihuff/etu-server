@@ -68,6 +68,10 @@ app =
        get ("test" <//> "cafetest") $ do
            state <- getState
            liftIO $ saveMenuPayload (dbConn state) dammyresponse
+       get ("test" <//> "dbfetchtest") $ do
+           state <- getState
+           resp <- liftIO $ latestRecordFromMenuPayload (dbConn state)
+           json resp
        
 
 getConnInfo :: IO ConnectInfo

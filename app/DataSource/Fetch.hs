@@ -18,11 +18,15 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.ToField
+import Database.PostgreSQL.Simple.FromField
 import Data.Time.Clock
 
 import Domain.Types
 import qualified Domain.Types.Menu as DTM
 import qualified Domain.Types.TimeTable as DTTT
+
+data Table = MENU_PAYLOAD | TIMETABLE_PAYLOAD | TRAIN_PAYLOAD
+    deriving (Eq, Show)
 
 fetchJSON :: FromJSON a => String -> IO a
 fetchJSON url = do
@@ -46,3 +50,13 @@ saveTimeTablePayLoad conn req = do
     let q = "INSERT INTO timetable_payloads (generated_at, main_timetable, status, fetched_at, updated_at, source) VALUES (?, ?, ?, ?, ?, ?)"
     execute conn q (DTTT.generated_at req, toJSONField (DTTT.main_timetable req), "ok" :: String, time, time, "ohara" :: String)
     return ()
+
+latestRecordFromMenuPayload :: Connection -> IO DTM.MenuPayload
+latestRecordFromMenuPayload conn = do
+    time <- getCurrentTime
+    let q1 = "select max(updated_at) from menu_payloads"
+        q2 = "select * from menu_payloads where (updated_at = ?);"
+    latestTime <- Prelude.head <$> (query conn q1 () :: IO [Only UTCTime])
+    (id, generatedat, DTM.MenusJSON maintimetable, status, fetchedat, updatedat, source) <- Prelude.head <$> (query conn q2 latestTime :: IO [DTM.MenuPair])
+    return $ DTM.MenuPayload { DTM.generated_at = generatedat, DTM.menus = maintimetable }
+

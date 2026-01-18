@@ -9,6 +9,7 @@ import Data.Text
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Database.PostgreSQL.Simple.ToField
+import Database.PostgreSQL.Simple.FromField (FromField, fromField, fromJSONField)
 
 -- menu type
 
@@ -35,3 +36,13 @@ dammyMenu = MenuPayload { generated_at = read "2026-01-12 04:53:23.441233382 UTC
                                   ,Menu { name = "ダミー親子丼", date = "2026-01-22", price = 550 }
                                   ]
                         }
+
+type MenuPair = (Int, UTCTime, MenusJSON, Text, UTCTime, UTCTime, Text)
+
+newtype MenusJSON = MenusJSON [Menu]
+
+instance FromJSON MenusJSON where
+  parseJSON v = MenusJSON <$> parseJSON v
+
+instance FromField MenusJSON where
+  fromField = fromJSONField
