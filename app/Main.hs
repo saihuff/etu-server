@@ -94,7 +94,8 @@ app =
            json js
        get "dammyadd" $ do
            state <- getState
-           liftIO $ saveTrainPayLoad (dbConn state) dammytrain
+           dammy <- liftIO $ fetchJSON "http://100.64.188.80:8000/api/test2"
+           liftIO $ saveTrainPayLoad (dbConn state) dammy
        get "traindammy" $ json dammytrain
        
 
