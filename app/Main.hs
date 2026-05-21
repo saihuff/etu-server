@@ -25,40 +25,31 @@ import DataSource.Fetch
 import Data.Time (getCurrentTime)
 import DataSource.Fetch (latestRecordFromMenuPayload)
 
+data PortsInfo = PortsInfo {ohara :: Int, matsumoto :: Int, nakada :: Int}
+
 data MySession = EmptySession
 data MyAppState = DummyAppState (IORef Int)
 
-data AppState = AppState {dbConn :: Connection}
+data AppState = AppState {dbConn :: Connection, extInfo :: PortsInfo}
 
 main :: IO ()
 main =
     do ref <- newIORef 0
        connInfo <- getConnInfo
+       extInfo' <- getExtInfo
        conn <- connect connInfo
-       let appState = AppState conn
+       let appState = AppState {dbConn = conn, extInfo = extInfo'}
        startPolling conn
        spockCfg <- defaultSpockCfg EmptySession PCNoDatabase appState
        runSpock 8080 (spock spockCfg app)
 
 app :: SpockM () MySession AppState ()
 app =
-    do get root $
-           text "Hello World!"
-               {-get ("hello" <//> var) $ \name ->
-           do (DummyAppState ref) <- getState
-              visitorNumber <- liftIO $ atomicModifyIORef' ref $ \i -> (i+1, i+1)
-              text ("Hello " <> name <> ", you are visitor number " <> T.pack (show visitorNumber))-}
+    do get root $ text "Hello World!"
        post "test" $ do
            mreq <- jsonBody'
            liftIO . print $ (mreq :: LoginReq)
            text "ok"
-       get "raspi" $ do
-           x <- liftIO $ fetchJSON "http://[2600:1900:4001:79b::]:5000/menu_get"
-           json (x :: DTM.MenuPayload)
-       post ("raspi" <//> "test") $ do
-           mreq <- jsonBody'
-           liftIO . print $ (mreq :: DTM.MenuPayload)
-           json mreq
        get ("api" <//> "v1" <//> "board") $ do
            state <- getState
            tt <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
@@ -90,11 +81,14 @@ app =
            resp <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
            json resp
        get ("test" <//> "outfetchtest") $ do
-           js <- liftIO $ (fetchJSON "http://172.21.54.165:5000/api/test" :: IO DTTT.TimeTables)
+           state <- getState
+           let fetchPort = ohara $ extInfo state
+           js <- liftIO $ (fetchJSON ("http://localhost:" ++ show fetchPort ++ "/api/test") :: IO DTTT.TimeTables)
            json js
        get "dammyadd" $ do
            state <- getState
-           dammy <- liftIO $ fetchJSON "http://100.64.188.80:8000/api/test2"
+           let fetchPort = nakada $ extInfo state
+           dammy <- liftIO $ fetchJSON ("http://localhost:" ++ show fetchPort ++ "/api/test2")
            liftIO $ saveTrainPayLoad (dbConn state) dammy
        get "traindammy" $ json dammytrain
        
@@ -119,6 +113,22 @@ getConnInfo = do
     , connectPassword = pass
     , connectDatabase = db
     }
+
+getExtInfo :: IO PortsInfo
+getExtInfo = do
+    oharaPort <- maybe 8080 read <$> lookupEnv "OHARA_PORT"
+    putStrLn $ "DEBUG OHARA_PORT=" ++ show oharaPort
+    matsumotoPort <- maybe 8081 read <$> lookupEnv "MATSUMOTO_PORT"
+    putStrLn $ "DEBUG MATSUMOTO_PORT=" ++ show matsumotoPort
+    nakadaPort <- maybe 8083 read <$> lookupEnv "NAKADA_PORT"
+    putStrLn $ "DEBUG NAKADA_PORT=" ++ show nakadaPort
+
+    pure $ PortsInfo
+        { ohara = oharaPort
+        , matsumoto = matsumotoPort
+        , nakada = nakadaPort
+        }
+
 
 dammyresponse :: DTM.MenuPayload
 dammyresponse = DTM.dammyMenu
