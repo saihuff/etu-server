@@ -76,6 +76,10 @@ app =
            state <- getState
            resp <- liftIO $ latestRecordFromMenuPayload (dbConn state)
            json resp
+       get ("test" <//> "traintest") $ do
+           state <- getState
+           t <- liftIO $ latestRecordFromTrainPayload (dbConn state)
+           json t
        get ("test" <//> "dbfetchtest2") $ do
            state <- getState
            resp <- liftIO $ latestRecordFromTimeTablePayload (dbConn state)
@@ -85,6 +89,13 @@ app =
            let fetchPort = ohara $ extInfo state
            js <- liftIO $ (fetchJSON ("http://localhost:" ++ show fetchPort ++ "/api/test") :: IO DTTT.TimeTables)
            json js
+       get ("test" <//> "dammyadd") $ do
+           state <- getState
+           liftIO $ saveMenuPayload (dbConn state) dammyresponse
+           liftIO $ saveTimeTablePayLoad (dbConn state) dammytime
+           liftIO $ saveTrainPayLoad (dbConn state) dammytrain
+           time <- liftIO $ getCurrentTime
+           json $ mergeData time dammyresponse dammytime dammytrain
        get "dammyadd" $ do
            state <- getState
            let fetchPort = nakada $ extInfo state
